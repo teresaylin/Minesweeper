@@ -94,7 +94,7 @@ public class GameBoard {
      * @param x column of the cell with a bomb
      * @param y row of the cell with a bomb
      */
-    private void incrementNeighbors(int x, int y) {
+    private synchronized void incrementNeighbors(int x, int y) {
         for (int i=x-1; i <= x+1; i++) {
             for (int j=y-1; j <= j+1; j++) {
                 if (i!=x && j!=y && board.containsKey(i+","+j)) {
@@ -120,7 +120,7 @@ public class GameBoard {
      * @return the type of message ("BOARD" or "BOOM"). "BOOM" is returned if
      * cell (i,j) contains a bomb.
      */
-    public String dig(int i, int j) {
+    public synchronized String dig(int i, int j) {
         // if not valid or not untouched, return BOARD
         if (!board.containsKey(i+","+j) || board.get(i+","+j)[2]!=0) {
             return "BOARD";
@@ -148,7 +148,7 @@ public class GameBoard {
      * @param x column of the cell whose neighbors will be decremented
      * @param y row of the cell whose neighbors will be decremented
      */
-    private void decrementNeighbors(int x, int y) {
+    private synchronized void decrementNeighbors(int x, int y) {
         for (int i=x-1; i <= x+1; i++) {
             for (int j=y-1; j <= j+1; j++) {
                 if (i!=x && j!=y && board.containsKey(i+","+j)) {
@@ -164,7 +164,7 @@ public class GameBoard {
      * @param x column of cell
      * @param y row of cell
      */
-    private void digUntouchedNeighbors(int x, int y) {
+    private synchronized void digUntouchedNeighbors(int x, int y) {
         int[] status = board.get(x+","+y);
         if (status[1]==0) {
             for (int i=x-1; i <= x+1; i++) {
@@ -184,7 +184,7 @@ public class GameBoard {
      * @param j row of the cell to be flagged
      * @return "BOARD"
      */
-    public String flag(int i, int j) {
+    public synchronized String flag(int i, int j) {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==0) {
             board.get(i+","+j)[2] = 1;  // flag
         }
@@ -197,7 +197,7 @@ public class GameBoard {
      * @param j row of the cell to be deflagged
      * @return "BOARD"
      */
-    public String deflag(int i, int j) {
+    public synchronized String deflag(int i, int j) {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==1) {
             board.get(i+","+j)[2] = 0;  // untouched
         }
@@ -211,7 +211,7 @@ public class GameBoard {
      * @param j
      * @return
      */
-    public String getStatus(int i, int j) {
+    public synchronized String getStatus(int i, int j) {
         if (board.containsKey(i+","+j)) {
             // 0 for untouched, 1 for flagged, 2 for dug
             int status = board.get(i+","+j)[2];
