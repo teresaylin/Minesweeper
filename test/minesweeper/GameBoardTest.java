@@ -53,6 +53,19 @@ public class GameBoardTest {
      *          untouched
      *  outputs:
      *      "BOARD"
+     * 
+     * getStatus():
+     *  inputs:
+     *      invalid cell
+     *      valid cell
+     *          flagged
+     *          dug
+     *          untouched
+     *  outputs:
+     *      "invalid cell"
+     *      "flagged"
+     *      "dug"
+     *      "untouched"
      */
     
     @Test(expected=AssertionError.class)
@@ -181,5 +194,36 @@ public class GameBoardTest {
         GameBoard g = new GameBoard(3, 1);
         assertEquals("deflagging untouched cell returns BOARD", "BOARD", g.deflag(2, 0));
         assertTrue("status of untouched cell is unchanged", g.getStatus(2, 0).equals("untouched"));
+    }
+    
+    // TESTS FOR getStatus()
+    // covers invalid cell
+//    @Test
+    public void testGetStatusInvalidCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("getting status of invalid cell returns 'invalid cell'", "invalid cell", g.getStatus(3, 0));
+    }
+    
+    // covers valid cell that is dug
+//  @Test
+    public void testGetStatusAlreadyDugCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.dig(2, 0);
+        assertEquals("getting status of already dug cell returns 'dug'", "dug", g.getStatus(2, 0));
+    }
+  
+  // covers valid cell that is flagged
+//  @Test
+    public void testGetStatusAlreadyFlaggedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.flag(2, 0);
+        assertEquals("getting status of already flagged cell returns 'flagged'", "flagged", g.getStatus(2, 0));
+    }
+  
+  // covers valid cell that is untouched
+//  @Test
+    public void testGetStatusUntouchedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("getting status of untouched cell returns 'untouched'", "untouched", g.getStatus(2, 0));
     }
 }
