@@ -53,16 +53,33 @@ public class GameServer {
     public void serve() throws IOException {
         while (true) {
             // block until a client connects
-            Socket socket = serverSocket.accept();
-
-            // handle the client
-            try {
-                handleConnection(socket);
-            } catch (IOException ioe) {
-                ioe.printStackTrace(); // but do not stop serving
-            } finally {
-                socket.close();
-            }
+            final Socket socket = serverSocket.accept();
+            
+            // create a thread for each client
+            Thread handler = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        try {
+                            handleConnection(socket);
+                        } finally {
+                            socket.close();
+                        }
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace(); // but do not stop serving
+                    }
+                }
+            });
+            
+            handler.start();
+            
+            // handle a single client
+//            try {
+//                handleConnection(socket);
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace(); // but do not stop serving
+//            } finally {
+//                socket.close();
+//            }
         }
     }
 
