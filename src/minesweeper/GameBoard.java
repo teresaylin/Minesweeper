@@ -204,6 +204,32 @@ public class GameBoard {
         return "BOARD";
     }
     
+    /**
+     * TODO
+     * 
+     * @param i
+     * @param j
+     * @return
+     */
+    public String getStatus(int i, int j) {
+        if (board.containsKey(i+","+j)) {
+            // 0 for untouched, 1 for flagged, 2 for dug
+            int status = board.get(i+","+j)[2];
+            switch(status) {
+            case 0: return "untouched";
+            case 1: return "flagged";
+            case 2: return "dug";
+            default: throw new AssertionError("status is not untouched, flagged, or dug");
+            }
+        } else {
+            return "invalid cell";
+        }
+    }
+    
+    /**
+     * Returns a string representation of the board.
+     * TODO edit this description
+     */
     @Override
     public String toString() {
         List<String> cells = new ArrayList<>(board.keySet());

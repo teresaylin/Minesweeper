@@ -115,9 +115,71 @@ public class GameBoardTest {
     // TODO covers valid cell that is untouched and does not contain a bomb
     
     // TESTS FOR flag()
+    // covers invalid cell
+    @Test
+    public void testFlagInvalidCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("flagging invalid cell returns BOARD", "BOARD", g.flag(3, 0));
+    }
     
+    // covers valid cell that is dug
+    @Test
+    public void testFlagAlreadyDugCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.dig(2, 0);
+        assertEquals("flagging already dug cell returns BOARD", "BOARD", g.flag(2, 0));
+        assertTrue("status of already dug cell is unchanged", g.getStatus(2, 0).equals("flagged"));
+    }
+    
+    // covers valid cell that is flagged
+    @Test
+    public void testFlagAlreadyFlaggedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.flag(2, 0);
+        assertEquals("flagging already flagged cell returns BOARD", "BOARD", g.flag(2, 0));
+        assertTrue("status of already flagged cell is unchanged", g.getStatus(2, 0).equals("flagged"));
+    }
+    
+    // covers valid cell that is untouched
+    @Test
+    public void testFlagUntouchedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("flagging untouched cell returns BOARD", "BOARD", g.flag(2, 0));
+        assertTrue("status of untouched cell is now flagged", g.getStatus(2, 0).equals("flagged"));
+    }
     
     
     // TESTS FOR deflag()
+    // covers invalid cell
+//    @Test
+    public void testDeflagInvalidCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("deflagging invalid cell returns BOARD", "BOARD", g.deflag(3, 0));
+    }
     
+    // covers valid cell that is dug
+//    @Test
+    public void testDeflagAlreadyDugCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.dig(2, 0);
+        assertEquals("deflagging already dug cell returns BOARD", "BOARD", g.deflag(2, 0));
+        assertTrue("status of already dug cell is unchanged", g.getStatus(2, 0).equals("dug"));
+    }
+    
+    // covers valid cell that is flagged
+//    @Test
+    public void testDeflagAlreadyFlaggedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        g.flag(2, 0);
+        assertEquals("deflagging already flagged cell returns BOARD", "BOARD", g.deflag(2, 0));
+        assertTrue("status of already flagged cell is now untouched", g.getStatus(2, 0).equals("untouched"));
+    }
+    
+    // covers valid cell that is untouched
+//    @Test
+    public void testDeflagUntouchedCell() {
+        GameBoard g = new GameBoard(3, 1);
+        assertEquals("deflagging untouched cell returns BOARD", "BOARD", g.deflag(2, 0));
+        assertTrue("status of untouched cell is unchanged", g.getStatus(2, 0).equals("untouched"));
+    }
 }
