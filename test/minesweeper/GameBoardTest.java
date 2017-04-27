@@ -77,19 +77,19 @@ public class GameBoardTest {
     // covers invalid sizeX and sizeY
     @Test(expected=AssertionError.class)
     public void testGameBoardInvalidXandY() {
-        GameBoard g = new GameBoard(0, 0);
+        new GameBoard(0, 0);
     }
     
     // covers invalid sizeX
     @Test(expected=AssertionError.class)
     public void testGameBoardInvalidX() {
-        GameBoard g = new GameBoard(0, 3);
+        new GameBoard(0, 3);
     }
     
     // covers invalid sizeY
     @Test(expected=AssertionError.class)
     public void testGameBoardInvalidY() {
-        GameBoard g = new GameBoard(3, 0);
+        new GameBoard(3, 0);
     }
     
     //TODO test valid gameBoards?

@@ -4,14 +4,17 @@
 package minesweeper;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 /**
- * TODO: Specification, clarify rules for user on digging, flagging, deflagging
- * Creates a mutable Minesweeper board, where each cell (i,j) either contains a bomb
+ * TODO: Specification, clarify rules for user on digging, flagging, deflagging; indicate thread safety
+ * 
+ * 
+ * Creates a mutable, thread-safe Minesweeper board, where each cell (i,j) either contains a bomb
  * or does not contain a bomb. All cells in the board start off "untouched" until
  * a user "digs" or "flags" that cell. The user can also "deflag" a flagged cell.
  * 
@@ -26,12 +29,12 @@ public class GameBoard {
     //      int[2] represents status (0 for untouched, 1 for flagged, 2 for dug)
     private final int numCols;
     private final int numRows;
-    private final Map<String, int[]> board = new HashMap<>();
+    private final Map<String, int[]> board = Collections.synchronizedMap(new HashMap<>());
     
     /*
      * Abstraction function:
      *  AF(sizeX, sizeY) = Minesweeper board with sizeX number of columns and sizeY
-     *  number of rows.
+     *                     number of rows.
      * Rep invariant:
      *  numCols > 0
      *  numRows > 0
@@ -40,7 +43,9 @@ public class GameBoard {
      *  numRows and numCols are both final and primitive data types
      *  board is never returned in any of the public methods
      * Thread safety:
-     *  TODO
+     *  board is wrapped in a thread-safe wrapper
+     *  each instance method that accesses the board has a lock to ensure that calls in the
+     *      method are atomic
      */
     
     // TODO: Specify, test, and implement in problem 2
@@ -75,13 +80,10 @@ public class GameBoard {
         }
         // increment count of bombs in neighbors
         for (int x=0; x < sizeX; x++) {
-//            System.out.println("x: " + x);
             for (int y=0; y < sizeY; y++) {
-//                System.out.println("y: " + y);
                 if (board.get(x+","+y)[0]==1) {
-//                    System.out.println("bomb!");
-                    updateNeighbors(x, y, 1);
-//                    System.out.println(Arrays.toString(board.get(x+","+y)));
+                    incrementNeighbors(x, y);
+//                    updateNeighbors(x, y, 1);
                 }
             }
         }
@@ -98,32 +100,12 @@ public class GameBoard {
      * @param y row of the cell with a bomb
      * @param delta how much to add to each neighbor's count-of-neighbors-with-bombs
      */
-    private void updateNeighbors(int x, int y, int delta) {
+    private synchronized void updateNeighbors(int x, int y, int delta) {
         for (int i=x-1; i <= x+1; i++) {
             for (int j=y-1; j <= y+1; j++) {
-//                System.out.println("looking at coord: " + i + "," + j);
                 if (!(i==x && j==y) && board.containsKey(i+","+j)) {
-//                    System.out.println("board contains " + i + "," + j);
                     board.get(i+","+j)[1] += delta;
-//                    System.err.println(Arrays.toString(board.get(i+","+j)));
                     assert board.get(i+","+j)[1] <= 8 && board.get(i+","+j)[1] >= 0;
-                }
-            }
-        }
-    }
-    
-    /**
-     * Finishes setup of the game board.
-     * For the neighbors of cell (x,y), where cell (x,y) contains a bomb,
-     * increment the count-of-neighbors-with-bombs count in the neighbors.
-     * @param x column of the cell with a bomb
-     * @param y row of the cell with a bomb
-     */
-    private void incrementNeighbors(int x, int y) {
-        for (int i=x-1; i <= x+1; i++) {
-            for (int j=y-1; j <= y+1; j++) {
-                if (!(i==x && j==y) && board.containsKey(i+","+j)) {
-                    board.get(i+","+j)[1] += 1;
                 }
             }
         }
@@ -143,7 +125,7 @@ public class GameBoard {
      * @return the type of message ("BOARD" or "BOOM"). "BOOM" is returned if
      * cell (i,j) contains a bomb.
      */
-    public String dig(int i, int j) {
+    public synchronized String dig(int i, int j) {
         // if not valid or not untouched, return BOARD
         if (!board.containsKey(i+","+j) || board.get(i+","+j)[2]!=0) {
             return "BOARD";
@@ -156,8 +138,8 @@ public class GameBoard {
         // if contains a bomb, return BOOM message, remove bomb, update count of neighbors
         if (status[0]==1) {
             status[0] = 0;
-//            decrementNeighbors(i, j);
-            updateNeighbors(i, j, -1);
+            decrementNeighbors(i, j);
+//            updateNeighbors(i, j, -1);
             System.out.println("neighbors updated");
             return "BOOM";
         }
@@ -167,6 +149,23 @@ public class GameBoard {
         
         return "BOARD";
     }
+
+    /**
+     * Finishes setup of the game board.
+     * For the neighbors of cell (x,y), where cell (x,y) contains a bomb,
+     * increment the count-of-neighbors-with-bombs count in the neighbors.
+     * @param x column of the cell with a bomb
+     * @param y row of the cell with a bomb
+     */
+    private synchronized void incrementNeighbors(int x, int y) {
+        for (int i=x-1; i <= x+1; i++) {
+            for (int j=y-1; j <= y+1; j++) {
+                if (!(i==x && j==y) && board.containsKey(i+","+j)) {
+                    board.get(i+","+j)[1] += 1;
+                }
+            }
+        }
+    }
     
     /**
      * For the neighbors of cell (x,y), decrement the 
@@ -174,14 +173,14 @@ public class GameBoard {
      * @param x column of the cell whose neighbors will be decremented
      * @param y row of the cell whose neighbors will be decremented
      */
-    private void decrementNeighbors(int x, int y) {
+    private synchronized void decrementNeighbors(int x, int y) {
         for (int i=x-1; i <= x+1; i++) {
             for (int j=y-1; j <= y+1; j++) {
                 if (!(i==x && j==y) && board.containsKey(i+","+j)) {
                     board.get(i+","+j)[1] -= 1;
                 }
             }
-        }
+        }  
     }
     
     /**
@@ -190,7 +189,7 @@ public class GameBoard {
      * @param x column of cell
      * @param y row of cell
      */
-    private void digUntouchedNeighbors(int x, int y) {
+    private synchronized void digUntouchedNeighbors(int x, int y) {
         int[] status = board.get(x+","+y);
         if (status[1]==0) {
             for (int i=x-1; i <= x+1; i++) {
@@ -210,7 +209,7 @@ public class GameBoard {
      * @param j row of the cell to be flagged
      * @return "BOARD"
      */
-    public String flag(int i, int j) {
+    public synchronized String flag(int i, int j) {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==0) {
             board.get(i+","+j)[2] = 1;  // flag
         }
@@ -223,7 +222,7 @@ public class GameBoard {
      * @param j row of the cell to be deflagged
      * @return "BOARD"
      */
-    public String deflag(int i, int j) {
+    public synchronized String deflag(int i, int j) {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==1) {
             board.get(i+","+j)[2] = 0;  // untouched
         }
@@ -236,7 +235,7 @@ public class GameBoard {
      * @param j row of the cell
      * @return "untouched", "flagged", or "dug", according to the specification for GameBoard
      */
-    public String getStatus(int i, int j) {
+    public synchronized String getStatus(int i, int j) {
         if (board.containsKey(i+","+j)) {
             // 0 for untouched, 1 for flagged, 2 for dug
             int status = board.get(i+","+j)[2];
@@ -256,7 +255,7 @@ public class GameBoard {
      * TODO edit this description
      */
     @Override
-    public String toString() {
+    public synchronized String toString() {
         List<String> cells = new ArrayList<>(board.keySet());
         String s = "";
         for (String cell: cells) {

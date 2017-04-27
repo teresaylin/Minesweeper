@@ -24,11 +24,15 @@ public class GameServer {
 
     /** Socket for receiving client connections. */
     private final ServerSocket serverSocket;
+    
+    /** Minesweeper board. */
+//    private final GameBoard board;
 
     // TODO: Abstraction function, rep invariant, rep exposure
 
     // Thread safety for instance of GameServer
-    //   TODO: Problem 3
+    //   Threads and data are kept safe because data are confined to each thread.
+    //   handleConnection() does not modify any shared variables within threads.
 
     // Thread safety for system started by main()
     //   TODO: Problem 5
@@ -65,11 +69,11 @@ public class GameServer {
                             socket.close();
                         }
                     } catch (IOException ioe) {
+                        // both handleConnection and socket.close() can throw an IOException
                         ioe.printStackTrace(); // but do not stop serving
                     }
                 }
             });
-            
             handler.start();
             
             // handle a single client
@@ -92,6 +96,10 @@ public class GameServer {
     private void handleConnection(Socket socket) throws IOException {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        
+        // TODO change welcome message
+//        out.println("Welcome to Minesweeper. Players: " + 1 + " including you. Board: "
+//          + X + " columns by " + Y + " rows. Type 'help' for help.\n");
 
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
@@ -254,6 +262,10 @@ public class GameServer {
         
         // TODO: Continue implementation here in problem 4
         
+        // Random new board
+//        board = new GameBoard(sizeX, sizeY);
+        
+        // Start server
         GameServer server = new GameServer(port);
         server.serve();
     }
