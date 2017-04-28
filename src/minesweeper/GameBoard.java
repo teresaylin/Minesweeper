@@ -83,7 +83,7 @@ public class GameBoard {
         for (int x=0; x < sizeX; x++) {
             for (int y=0; y < sizeY; y++) {
                 if (board.get(x+","+y)[0]==1) {
-                    incrementNeighbors(x, y);
+                    updateNeighbors(x, y, 1);
                 }
             }
         }
@@ -126,7 +126,6 @@ public class GameBoard {
         for (int x=0; x < numCols; x++) {
             for (int y=0; y < numRows; y++) {
                 if (board.get(x+","+y)[0]==1) {
-//                    incrementNeighbors(x, y);
                     updateNeighbors(x, y, 1);
                 }
             }
@@ -182,46 +181,12 @@ public class GameBoard {
         if (status[0]==1) {
             status[0] = 0;
             updateNeighbors(i, j, -1);
-//            decrementNeighbors(i, j);
             digUntouchedNeighbors(i, j);
             return "BOOM";
         }
         // if has no neighbor cells with bombs, change untouched neighbors to dug, and recurse this step for those neighbors
         digUntouchedNeighbors(i, j);
         return "BOARD";
-    }
-
-    /**
-     * Finishes setup of the game board.
-     * For the neighbors of cell (x,y), where cell (x,y) contains a bomb,
-     * increment the count-of-neighbors-with-bombs count in the neighbors.
-     * @param x column of the cell with a bomb
-     * @param y row of the cell with a bomb
-     */
-    private synchronized void incrementNeighbors(int x, int y) {
-        for (int i=x-1; i <= x+1; i++) {
-            for (int j=y-1; j <= y+1; j++) {
-                if (!(i==x && j==y) && board.containsKey(i+","+j)) {
-                    board.get(i+","+j)[1] += 1;
-                }
-            }
-        }
-    }
-    
-    /**
-     * For the neighbors of cell (x,y), decrement the 
-     * count-of-neighbors-with-bombs count in its neighbors.
-     * @param x column of the cell whose neighbors will be decremented
-     * @param y row of the cell whose neighbors will be decremented
-     */
-    private synchronized void decrementNeighbors(int x, int y) {
-        for (int i=x-1; i <= x+1; i++) {
-            for (int j=y-1; j <= y+1; j++) {
-                if (!(i==x && j==y) && board.containsKey(i+","+j)) {
-                    board.get(i+","+j)[1] -= 1;
-                }
-            }
-        }  
     }
     
     /**

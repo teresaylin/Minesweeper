@@ -113,7 +113,7 @@ public class GameServerTest {
     // covers 1 client
     @Test(timeout = 10000)
     public void publishedTest() throws IOException {
-        int port = 4444;
+        int port = 4440;
         Thread thread = startGameServer("test_board_5", port);
 
         Socket socket = connectToGameServer(thread, port);

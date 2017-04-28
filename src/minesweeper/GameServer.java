@@ -113,14 +113,16 @@ public class GameServer {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         
-        // TODO change welcome message
         out.println("Welcome to Minesweeper. Players: " + numClients + " including you. Board: "
           + board.getCols() + " columns by " + board.getRows() + " rows. Type 'help' for help.");
 
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 String output = handleRequest(line);
-                if (!output.equals("terminate")) {
+                if (output.equals("terminate")) {
+                    break;
+                }
+                else {
                     out.println(output);
                 }
             }
