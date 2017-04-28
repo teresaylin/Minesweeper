@@ -2,6 +2,11 @@
  * Redistribution of original or derived work requires permission of course staff.
  */
 package minesweeper;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,8 +59,7 @@ public class GameBoard {
      * Checks that the board size is always exactly equal to sizeX * sizeY
      */
     private void checkRep() {
-        assert numCols > 0;
-        assert numRows > 0;
+        assert numCols > 0 && numRows > 0;
         assert board.size() == numCols * numRows;
     }
     
@@ -73,7 +77,10 @@ public class GameBoard {
         for (int x=0; x < sizeX; x++) {
             for (int y=0; y < sizeY; y++) {
                 int[] status = {0, 0, 0};
-                status[0] = rand.nextInt(2);        // bomb status: 1, no bomb: 0
+                int randomInt = rand.nextInt(4);        // could generate 0, 1, 2, or 3
+                if (randomInt == 0) {
+                    status[0] = 1;        // bomb status: 1, no bomb: 0
+                }
                 board.put(x+","+y, status);
                 System.out.println(Arrays.toString(board.get(x+","+y)));
             }
@@ -83,13 +90,50 @@ public class GameBoard {
             for (int y=0; y < sizeY; y++) {
                 if (board.get(x+","+y)[0]==1) {
                     incrementNeighbors(x, y);
-//                    updateNeighbors(x, y, 1);
                 }
             }
         }
         System.out.println("Printing board");
         System.out.println(this);
         checkRep();
+    }
+    
+    /**
+     * TODO
+     * 
+     * @param file
+     * @throws IOException
+     */
+    public GameBoard(final File file) throws IOException {
+        
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        String[] size = reader.readLine().split("\\s+");
+        this.numCols = Integer.parseInt(size[0]);
+        this.numRows = Integer.parseInt(size[1]);
+        
+        // populate board
+        for (int row = 0; row < numRows; row++) {
+            String line = reader.readLine();
+            String[] cells = line.split("\\s+");
+            for (int col = 0; col < numCols; col++) {
+                int[] status = {0, 0, 0};
+                status[0] = Integer.parseInt(cells[col]);       // 0 if no bomb, 1 if has bomb
+                board.put(col+","+row, status);
+            }
+        }
+        reader.close();
+        
+        // change neighbor counts
+        for (int x=0; x < numCols; x++) {
+            for (int y=0; y < numRows; y++) {
+                if (board.get(x+","+y)[0]==1) {
+                    incrementNeighbors(x, y);
+                }
+            }
+        }
+        
+        checkRep();
+        System.out.println(this);
     }
     
     /**
@@ -251,16 +295,48 @@ public class GameBoard {
     }
     
     /**
+     * Gets the number of rows (must be positive) in the board.
+     * @return number of rows
+     */
+    public int getRows() {
+        return numRows;
+    }
+    
+    /**
+     * Gets the number of columns (must be positive) in the board.
+     * @return number of columns
+     */
+    public int getCols() {
+        return numCols;
+    }
+    
+    /**
      * Returns a string representation of the board.
      * TODO edit this description
      */
     @Override
     public synchronized String toString() {
-        List<String> cells = new ArrayList<>(board.keySet());
+//        List<String> cells = new ArrayList<>(board.keySet());
         String s = "";
-        for (String cell: cells) {
-            s = s.concat(cell + ": " + Arrays.toString(board.get(cell)) + "\n");
+//        for (String cell: cells) {
+//            s = s.concat(cell + ": " + Arrays.toString(board.get(cell)) + "\n");
+//        }
+//        return s;
+        
+        for (int row=0; row<numRows; row++) {
+            String line = "";
+            for (int col=0; col<numCols; col++) {
+                if (board.get(col+","+row)[0]==1) {
+                    line = line.concat("1 ");
+                } else {
+                    line = line.concat("0 ");
+                }
+            }
+            line = line.substring(0, line.length()-1);
+            line = line.concat("\n");
+            s = s.concat(line);
         }
+        
         return s;
     }
 }

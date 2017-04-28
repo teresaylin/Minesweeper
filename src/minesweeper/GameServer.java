@@ -26,7 +26,7 @@ public class GameServer {
     private final ServerSocket serverSocket;
     
     /** Minesweeper board. */
-//    private final GameBoard board;
+    private final GameBoard board;
 
     // TODO: Abstraction function, rep invariant, rep exposure
 
@@ -43,8 +43,9 @@ public class GameServer {
      * @param port port number, requires 0 <= port <= 65535
      * @throws IOException if an error occurs opening the server socket
      */
-    public GameServer(int port) throws IOException {
+    public GameServer(int port, GameBoard board) throws IOException {
         serverSocket = new ServerSocket(port);
+        this.board = board;
     }
 
     /**
@@ -98,8 +99,8 @@ public class GameServer {
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         
         // TODO change welcome message
-//        out.println("Welcome to Minesweeper. Players: " + 1 + " including you. Board: "
-//          + X + " columns by " + Y + " rows. Type 'help' for help.\n");
+        out.println("Welcome to Minesweeper. Players: " + 1 + " including you. Board: "
+          + board.getCols() + " columns by " + board.getRows() + " rows. Type 'help' for help.\n");
 
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
@@ -261,12 +262,19 @@ public class GameServer {
     public static void runGameServer(Optional<File> file, int sizeX, int sizeY, int port) throws IOException {
         
         // TODO: Continue implementation here in problem 4
-        
-        // Random new board
-//        board = new GameBoard(sizeX, sizeY);
+        GameBoard board;
+        // If file is passed in as an argument
+        if (file.isPresent()) {
+            // pass file into GameBoard
+            board = new GameBoard(file.get());
+        } else {
+            // Random new board
+            assert sizeX > 0 && sizeY > 0;
+            board = new GameBoard(sizeX, sizeY);
+        }
         
         // Start server
-        GameServer server = new GameServer(port);
+        GameServer server = new GameServer(port, board);
         server.serve();
     }
 }

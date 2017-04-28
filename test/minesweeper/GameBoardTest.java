@@ -13,7 +13,7 @@ import org.junit.Test;
 public class GameBoardTest {
     private static final String TEST_BOARD_5 = "minesweeper/boards/test_board_5";
     
-    /* TODO: Testing strategy
+    /* Testing strategy
      * gameBoard():
      *  inputs:
      *      sizeX: <=0, >0
@@ -66,6 +66,12 @@ public class GameBoardTest {
      *      "flagged"
      *      "dug"
      *      "untouched"
+     * 
+     * getCols():
+     *  TODO
+     *  
+     * getRows():
+     *  TODO
      */
     
     @Test(expected=AssertionError.class)
