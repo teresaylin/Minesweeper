@@ -6,23 +6,18 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
 /**
- * TODO: Specification, clarify rules for user on digging, flagging, deflagging; indicate thread safety
+ * Creates a mutable, thread-safe Minesweeper board, where each cell (i,j) - where i is the x coordinate 
+ * (column), and j is the y coordinate (row) - either contains a bomb or does not contain a bomb. 
+ * (0,0) indicates the top left corner of the board.
  * 
- * 
- * Creates a mutable, thread-safe Minesweeper board, where each cell (i,j) either contains a bomb
- * or does not contain a bomb. All cells in the board start off "untouched" until
- * a user "digs" or "flags" that cell. The user can also "deflag" a flagged cell.
- * 
+ * All cells in the board start off "untouched" until a user "digs" or "flags" that cell. 
+ * The user can also "deflag" a flagged cell, which returns the cell back to the "untouched" state.
  */
 public class GameBoard {
     
@@ -38,12 +33,14 @@ public class GameBoard {
     
     /*
      * Abstraction function:
-     *  AF(sizeX, sizeY) = Minesweeper board with sizeX number of columns and sizeY
-     *                     number of rows.
+     *  AF(numCols, numRows, board) = Minesweeper board with numCols number of columns and numRows
+     *                                number of rows, where each coordinate is mapped to a status 
+     *                                array, representing if it contains a bomb, how many neighbors
+     *                                have bombs, and if it is untouched/flagged/dug.
      * Rep invariant:
      *  numCols > 0
      *  numRows > 0
-     *  board.size() = sizeX * sizeY
+     *  board.size() = numCols * numRows
      * Rep exposure:
      *  numRows and numCols are both final and primitive data types
      *  board is never returned in any of the public methods
@@ -52,8 +49,6 @@ public class GameBoard {
      *  each instance method that accesses the board has a lock to ensure that calls in the
      *      method are atomic
      */
-    
-    // TODO: Specify, test, and implement in problem 2
     
     /**
      * Checks that the board size is always exactly equal to sizeX * sizeY
@@ -79,10 +74,9 @@ public class GameBoard {
                 int[] status = {0, 0, 0};
                 int randomInt = rand.nextInt(4);        // could generate 0, 1, 2, or 3
                 if (randomInt == 0) {
-                    status[0] = 1;        // bomb status: 1, no bomb: 0
+                    status[0] = 1;                      // bomb status: 1, no bomb: 0
                 }
                 board.put(x+","+y, status);
-//                System.out.println(Arrays.toString(board.get(x+","+y)));
             }
         }
         // increment count of bombs in neighbors
@@ -94,16 +88,20 @@ public class GameBoard {
             }
         }
         checkRep();
-//        System.out.println("Printing board");
-//        System.out.println(this);
         
     }
     
     /**
-     * TODO
+     * Constructs a GameBoard from a file.
      * 
-     * @param file
-     * @throws IOException
+     * @param file The board file to be translated into a GameBoard.
+     * The first line of this board file must specify "numCols [SPACE] numRows".
+     * After the first line, there must be exactly numRows number of rows and
+     * numCols number of columns. Each cell is represented by a number (0 or 1)
+     * to represent whether or not that cell contains a bomb (1 means bomb, 0
+     * means no bomb). Each line ends in a newline.
+     * 
+     * @throws IOException if the file cannot be located
      */
     public GameBoard(final File file) throws IOException {
         
@@ -128,13 +126,13 @@ public class GameBoard {
         for (int x=0; x < numCols; x++) {
             for (int y=0; y < numRows; y++) {
                 if (board.get(x+","+y)[0]==1) {
-                    incrementNeighbors(x, y);
+//                    incrementNeighbors(x, y);
+                    updateNeighbors(x, y, 1);
                 }
             }
         }
         
         checkRep();
-//        System.out.println(this);
     }
     
     /**
@@ -183,17 +181,13 @@ public class GameBoard {
         // if contains a bomb, return BOOM message, remove bomb, update count of neighbors
         if (status[0]==1) {
             status[0] = 0;
-            decrementNeighbors(i, j);
-//            updateNeighbors(i, j, -1);
-//            System.out.println("neighbors updated");
+            updateNeighbors(i, j, -1);
+//            decrementNeighbors(i, j);
             digUntouchedNeighbors(i, j);
-            System.out.println("dug untouched neighbors 1");
             return "BOOM";
         }
         // if has no neighbor cells with bombs, change untouched neighbors to dug, and recurse this step for those neighbors
         digUntouchedNeighbors(i, j);
-        System.out.println("dug untouched neighbors 2");
-        
         return "BOARD";
     }
 
@@ -314,22 +308,17 @@ public class GameBoard {
     }
     
     /**
-     * Returns a string representation of the board.
-     * TODO edit this description
+     * Returns the string representation of the current state of the board. At each cell, the 
+     * following may be printed:
      * 
-     * “-” for squares with state untouched.
-     * “F” for squares with state flagged.
-     * “ ” (space) for squares with state dug and 0 neighbors that have a bomb.
-     * integer COUNT in range [1-8] for squares with state dug and COUNT neighbors that have a bomb.
+     * “-” for squares with state 'untouched'.
+     * “F” for squares with state 'flagged'.
+     * “ ” (space) for squares with state 'dug' and 0 neighbors that have a bomb.
+     * integer COUNT in range [1-8] for squares with state 'dug' and COUNT neighbors that have a bomb.
      */
     @Override
     public synchronized String toString() {
-//        List<String> cells = new ArrayList<>(board.keySet());
         String s = "";
-//        for (String cell: cells) {
-//            s = s.concat(cell + ": " + Arrays.toString(board.get(cell)) + "\n");
-//        }
-//        return s;
         
         for (int row=0; row<numRows; row++) {
             String line = "";
@@ -348,11 +337,6 @@ public class GameBoard {
                         line = line.concat(board.get(col+","+row)[1] + " ");
                     }
                 }
-//                if (board.get(col+","+row)[0]==1) {
-//                    line = line.concat("1 ");
-//                } else {
-//                    line = line.concat("0 ");
-//                }
             }
             line = line.substring(0, line.length()-1);
             line = line.concat("\n");

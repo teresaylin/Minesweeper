@@ -27,15 +27,28 @@ public class GameServer {
     
     /** Minesweeper board. */
     private final GameBoard board;
+    
+    /** number of clients */
+    private int numClients = 0;
 
-    // TODO: Abstraction function, rep invariant, rep exposure
-
-    // Thread safety for instance of GameServer
-    //   Threads and data are kept safe because data are confined to each thread.
-    //   handleConnection() does not modify any shared variables within threads.
-
-    // Thread safety for system started by main()
-    //   TODO: Problem 5
+    /*
+     * Abstraction function:
+     *  AF(serverSocket, board): a client-server connection for a specific board
+     * Rep invariant:
+     *  true
+     * Rep exposure:
+     *  the server socket and the game board are private and final and are never 
+     *  returned in any of the methods
+     * Thread safety for instance of GameServer:
+     *  Threads and data are kept safe because data are confined to each thread.
+     *  handleConnection() does not modify any shared variables within threads.
+     * Thread safety for system started by main():
+     *  Any new client requests get inserted into a queue, so that the main is only
+     *  ever handling one client request at a time. main() only calls runGameServer()
+     *  which calls serve(). serve() is the only place where clients are handled, so
+     *  there is no other location where the thread safety of the system could be
+     *  compromised.
+     */
 
     /**
      * Make a new game server that listens for connections on port.
@@ -68,6 +81,7 @@ public class GameServer {
                             handleConnection(socket);
                         } finally {
                             socket.close();
+                            numClients -= 1;
                         }
                     } catch (IOException ioe) {
                         // both handleConnection and socket.close() can throw an IOException
@@ -95,19 +109,18 @@ public class GameServer {
      * @throws IOException if the connection encounters an error or terminates unexpectedly
      */
     private void handleConnection(Socket socket) throws IOException {
+        numClients += 1;
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         
         // TODO change welcome message
-        out.println("Welcome to Minesweeper. Players: " + 1 + " including you. Board: "
+        out.println("Welcome to Minesweeper. Players: " + numClients + " including you. Board: "
           + board.getCols() + " columns by " + board.getRows() + " rows. Type 'help' for help.");
 
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 String output = handleRequest(line);
-                // TODO: handle "terminate"
                 if (!output.equals("terminate")) {
-                    // TODO: improve the spec of handleRequest to avoid using null
                     out.println(output);
                 }
             }
@@ -128,56 +141,44 @@ public class GameServer {
                      + "(dig -?\\d+ -?\\d+)|(flag -?\\d+ -?\\d+)|(deflag -?\\d+ -?\\d+)";
         if ( ! input.matches(regex)) {
             // invalid input
-            // TODO: Problem 5
             return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
-            + "Type 'look' to see the current board status, 'dig [X] [Y]' to uncover the square (X,Y), "
-            + "'flag [X] [Y]' to flag square (X,Y), and 'deflag [X] [Y]' to unflag square (X,Y). "
-            + "Type 'bye' to quit.";
+                    + "Type 'look' to see the current board status, 'dig X Y' to uncover the square (X,Y), "
+                    + "'flag X Y' to flag square (X,Y), and 'deflag X Y' to unflag square (X,Y). "
+                    + "Type 'bye' to quit.";
         }
         String[] tokens = input.split(" ");
         if (tokens[0].equals("look")) {
             // 'look' request
-            // TODO: Problem 5
-            System.out.println(board);
             return board.toString();
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            // TODO: Problem 5
             return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
-                    + "Type 'look' to see the current board status, 'dig [X] [Y]' to uncover the square (X,Y), "
-                    + "'flag [X] [Y]' to flag square (X,Y), and 'deflag [X] [Y]' to unflag square (X,Y). "
+                    + "Type 'look' to see the current board status, 'dig X Y' to uncover the square (X,Y), "
+                    + "'flag X Y' to flag square (X,Y), and 'deflag X Y' to unflag square (X,Y). "
                     + "Type 'bye' to quit.";
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
-            // TODO: Problem 5
             return "terminate";
         } else {
             int x = Integer.parseInt(tokens[1]);
             int y = Integer.parseInt(tokens[2]);
             if (tokens[0].equals("dig")) {
                 // 'dig x y' request
-                // TODO: Problem 5
                 String message = board.dig(x, y);
                 if (message=="BOOM") {
-                    System.out.println(board);
                     return "BOOM!";
                 }
                 return board.toString();
             } else if (tokens[0].equals("flag")) {
                 // 'flag x y' request
-                // TODO: Problem 5
                 board.flag(x, y);
-                System.out.println(board);
                 return board.toString();
             } else if (tokens[0].equals("deflag")) {
                 // 'deflag x y' request
-                // TODO: Problem 5
                 board.deflag(x, y);
-                System.out.println(board);
                 return board.toString();
             }
         }
-        // TODO: should never reach here, make sure to return in every case above
         throw new UnsupportedOperationException();
     }
 
@@ -284,8 +285,6 @@ public class GameServer {
      * @throws IOException if a network error occurs
      */
     public static void runGameServer(Optional<File> file, int sizeX, int sizeY, int port) throws IOException {
-        
-        // TODO: Continue implementation here in problem 4
         GameBoard board;
         // If file is passed in as an argument
         if (file.isPresent()) {

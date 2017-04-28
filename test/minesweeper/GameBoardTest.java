@@ -11,16 +11,16 @@ import java.io.IOException;
 import org.junit.Test;
 
 /**
- * TODO: Description
+ * Tests methods of the GameBoard class.
  */
 public class GameBoardTest {
-    private static final String TEST_BOARD_5 = "minesweeper/boards/test_board_5";
     
     /* Testing strategy
      * gameBoard():
      *  inputs:
      *      sizeX: <=0, >0
      *      sizeY: <=0, >0
+     *      file
      *  outputs:
      *      nothing (board is correct)
      *      assertion error
@@ -71,10 +71,10 @@ public class GameBoardTest {
      *      "untouched"
      * 
      * getCols():
-     *  TODO
+     *  input: valid GameBoard
      *  
      * getRows():
-     *  TODO
+     *  input: valid GameBoard
      */
     
     @Test(expected=AssertionError.class)
@@ -101,7 +101,18 @@ public class GameBoardTest {
         new GameBoard(3, 0);
     }
     
-    //TODO test valid gameBoards?
+    // covers inputting a file
+    @Test
+    public void testGameBoardFromFile() {
+        File f = new File("test/minesweeper/boards/test5.txt");
+        try {
+            GameBoard g = new GameBoard(f);
+            String output = "- - - - -\n" + "- - - - -\n" + "- - - - -\n" + "- - - - -\n" + "- - - - -";
+            assertEquals(output, g.toString());
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
     
     // TESTS FOR dig()    
     // covers invalid cell
@@ -137,7 +148,6 @@ public class GameBoardTest {
             GameBoard g = new GameBoard(f);
             assertEquals("digging untouched cell returns BOOM", "BOOM", g.dig(4, 1));
             assertTrue("status of untouched cell is now 'dug'", g.getStatus(4, 1).equals("dug"));
-//            System.out.println(g);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -151,13 +161,12 @@ public class GameBoardTest {
             GameBoard g = new GameBoard(f);
             assertEquals("digging untouched cell returns BOARD", "BOARD", g.dig(5, 1));
             assertTrue("status of untouched cell is now 'dug'", g.getStatus(5, 1).equals("dug"));
-//            System.out.println(g);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
     
-    // TODO covers valid cell that does not have a bomb or neighbors with bombs, has an untouched neighbor
+    // covers valid cell that does not have a bomb or neighbors with bombs, has an untouched neighbor
     @Test
     public void testDigUntouchedNoBombNoNeighborsWithBomb() {
         File f = new File("test/minesweeper/boards/test_board_5");
@@ -165,7 +174,6 @@ public class GameBoardTest {
             GameBoard g = new GameBoard(f);
             assertEquals("digging untouched cell returns BOARD", "BOARD", g.dig(2, 1));
             assertTrue("status of untouched cell is now 'dug'", g.getStatus(2, 1).equals("dug"));
-//            System.out.println(g);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
@@ -258,7 +266,7 @@ public class GameBoardTest {
         assertEquals("getting status of already dug cell returns 'dug'", "dug", g.getStatus(2, 0));
     }
   
-  // covers valid cell that is flagged
+    // covers valid cell that is flagged
     @Test
     public void testGetStatusAlreadyFlaggedCell() {
         GameBoard g = new GameBoard(3, 1);
@@ -266,10 +274,25 @@ public class GameBoardTest {
         assertEquals("getting status of already flagged cell returns 'flagged'", "flagged", g.getStatus(2, 0));
     }
   
-  // covers valid cell that is untouched
+    // covers valid cell that is untouched
     @Test
     public void testGetStatusUntouchedCell() {
         GameBoard g = new GameBoard(3, 1);
         assertEquals("getting status of untouched cell returns 'untouched'", "untouched", g.getStatus(2, 0));
+    }
+    
+    // TESTS FOR getCols()
+    // covers valid GameBoard
+    @Test
+    public void testGetCols() {
+        GameBoard g = new GameBoard(5, 3);
+        assertEquals("game board contains 5 columns", 5, g.getCols());
+    }
+    
+    // TESTS FOR getRows()
+    @Test
+    public void testGetRows() {
+        GameBoard g = new GameBoard(5, 3);
+        assertEquals("game board contains 3 rows", 3, g.getRows());
     }
 }
