@@ -82,7 +82,7 @@ public class GameBoard {
                     status[0] = 1;        // bomb status: 1, no bomb: 0
                 }
                 board.put(x+","+y, status);
-                System.out.println(Arrays.toString(board.get(x+","+y)));
+//                System.out.println(Arrays.toString(board.get(x+","+y)));
             }
         }
         // increment count of bombs in neighbors
@@ -93,9 +93,10 @@ public class GameBoard {
                 }
             }
         }
-        System.out.println("Printing board");
-        System.out.println(this);
         checkRep();
+//        System.out.println("Printing board");
+//        System.out.println(this);
+        
     }
     
     /**
@@ -133,7 +134,7 @@ public class GameBoard {
         }
         
         checkRep();
-        System.out.println(this);
+//        System.out.println(this);
     }
     
     /**
@@ -184,12 +185,14 @@ public class GameBoard {
             status[0] = 0;
             decrementNeighbors(i, j);
 //            updateNeighbors(i, j, -1);
-            System.out.println("neighbors updated");
+//            System.out.println("neighbors updated");
+            digUntouchedNeighbors(i, j);
+            System.out.println("dug untouched neighbors 1");
             return "BOOM";
         }
         // if has no neighbor cells with bombs, change untouched neighbors to dug, and recurse this step for those neighbors
         digUntouchedNeighbors(i, j);
-        System.out.println("dug untouched neighbors");
+        System.out.println("dug untouched neighbors 2");
         
         return "BOARD";
     }
@@ -313,6 +316,11 @@ public class GameBoard {
     /**
      * Returns a string representation of the board.
      * TODO edit this description
+     * 
+     * “-” for squares with state untouched.
+     * “F” for squares with state flagged.
+     * “ ” (space) for squares with state dug and 0 neighbors that have a bomb.
+     * integer COUNT in range [1-8] for squares with state dug and COUNT neighbors that have a bomb.
      */
     @Override
     public synchronized String toString() {
@@ -326,17 +334,31 @@ public class GameBoard {
         for (int row=0; row<numRows; row++) {
             String line = "";
             for (int col=0; col<numCols; col++) {
-                if (board.get(col+","+row)[0]==1) {
-                    line = line.concat("1 ");
+                if (board.get(col+","+row)[2]==0) {
+                    //untouched
+                    line = line.concat("- ");
+                } else if (board.get(col+","+row)[2]==1) {
+                    //flagged
+                    line = line.concat("F ");
                 } else {
-                    line = line.concat("0 ");
+                    // dug
+                    if (board.get(col+","+row)[1]==0) {
+                        line = line.concat("  ");
+                    } else {
+                        line = line.concat(board.get(col+","+row)[1] + " ");
+                    }
                 }
+//                if (board.get(col+","+row)[0]==1) {
+//                    line = line.concat("1 ");
+//                } else {
+//                    line = line.concat("0 ");
+//                }
             }
             line = line.substring(0, line.length()-1);
             line = line.concat("\n");
             s = s.concat(line);
         }
-        
+        s = s.substring(0, s.length()-1);
         return s;
     }
 }

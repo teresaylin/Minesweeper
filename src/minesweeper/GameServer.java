@@ -100,12 +100,13 @@ public class GameServer {
         
         // TODO change welcome message
         out.println("Welcome to Minesweeper. Players: " + 1 + " including you. Board: "
-          + board.getCols() + " columns by " + board.getRows() + " rows. Type 'help' for help.\n");
+          + board.getCols() + " columns by " + board.getRows() + " rows. Type 'help' for help.");
 
         try {
             for (String line = in.readLine(); line != null; line = in.readLine()) {
                 String output = handleRequest(line);
-                if (output != null) {
+                // TODO: handle "terminate"
+                if (!output.equals("terminate")) {
                     // TODO: improve the spec of handleRequest to avoid using null
                     out.println(output);
                 }
@@ -128,29 +129,52 @@ public class GameServer {
         if ( ! input.matches(regex)) {
             // invalid input
             // TODO: Problem 5
+            return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
+            + "Type 'look' to see the current board status, 'dig [X] [Y]' to uncover the square (X,Y), "
+            + "'flag [X] [Y]' to flag square (X,Y), and 'deflag [X] [Y]' to unflag square (X,Y). "
+            + "Type 'bye' to quit.";
         }
         String[] tokens = input.split(" ");
         if (tokens[0].equals("look")) {
             // 'look' request
             // TODO: Problem 5
+            System.out.println(board);
+            return board.toString();
         } else if (tokens[0].equals("help")) {
             // 'help' request
             // TODO: Problem 5
+            return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
+                    + "Type 'look' to see the current board status, 'dig [X] [Y]' to uncover the square (X,Y), "
+                    + "'flag [X] [Y]' to flag square (X,Y), and 'deflag [X] [Y]' to unflag square (X,Y). "
+                    + "Type 'bye' to quit.";
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
             // TODO: Problem 5
+            return "terminate";
         } else {
             int x = Integer.parseInt(tokens[1]);
             int y = Integer.parseInt(tokens[2]);
             if (tokens[0].equals("dig")) {
                 // 'dig x y' request
                 // TODO: Problem 5
+                String message = board.dig(x, y);
+                if (message=="BOOM") {
+                    System.out.println(board);
+                    return "BOOM!";
+                }
+                return board.toString();
             } else if (tokens[0].equals("flag")) {
                 // 'flag x y' request
                 // TODO: Problem 5
+                board.flag(x, y);
+                System.out.println(board);
+                return board.toString();
             } else if (tokens[0].equals("deflag")) {
                 // 'deflag x y' request
                 // TODO: Problem 5
+                board.deflag(x, y);
+                System.out.println(board);
+                return board.toString();
             }
         }
         // TODO: should never reach here, make sure to return in every case above

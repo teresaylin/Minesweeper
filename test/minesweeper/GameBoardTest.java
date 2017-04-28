@@ -5,6 +5,9 @@ package minesweeper;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.junit.Test;
 
 /**
@@ -126,21 +129,47 @@ public class GameBoardTest {
         assertTrue("status of already flagged cell is unchanged", g.getStatus(2, 0).equals("flagged"));
     }
     
-    // TODO covers valid cell that is untouched and contains a bomb
-//    @Test
-//    public void testDigUntouchedWithBomb() {
-//        GameBoard g = new GameBoard(3, 1);
-//        g.flag(2, 0);
-//        assertEquals("digging already flagged cell returns BOARD", "BOARD", g.dig(2, 0));
-//        assertTrue("status of already flagged cell is unchanged", g.getStatus(2, 0).equals("flagged"));
-//        System.out.println(g);
-//    }
+    // covers valid cell that is untouched and contains a bomb
+    @Test
+    public void testDigUntouchedWithBomb() {
+        File f = new File("test/minesweeper/boards/test_board_5");
+        try {
+            GameBoard g = new GameBoard(f);
+            assertEquals("digging untouched cell returns BOOM", "BOOM", g.dig(4, 1));
+            assertTrue("status of untouched cell is now 'dug'", g.getStatus(4, 1).equals("dug"));
+//            System.out.println(g);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
     
-    // TODO covers valid cell that is untouched and does not contain a bomb
-    
+    // covers valid cell that is untouched and does not contain a bomb, has a neighbor with a bomb
+    @Test
+    public void testDigUntouchedNoBomb() {
+        File f = new File("test/minesweeper/boards/test_board_5");
+        try {
+            GameBoard g = new GameBoard(f);
+            assertEquals("digging untouched cell returns BOARD", "BOARD", g.dig(5, 1));
+            assertTrue("status of untouched cell is now 'dug'", g.getStatus(5, 1).equals("dug"));
+//            System.out.println(g);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
     
     // TODO covers valid cell that does not have a bomb or neighbors with bombs, has an untouched neighbor
-    
+    @Test
+    public void testDigUntouchedNoBombNoNeighborsWithBomb() {
+        File f = new File("test/minesweeper/boards/test_board_5");
+        try {
+            GameBoard g = new GameBoard(f);
+            assertEquals("digging untouched cell returns BOARD", "BOARD", g.dig(2, 1));
+            assertTrue("status of untouched cell is now 'dug'", g.getStatus(2, 1).equals("dug"));
+//            System.out.println(g);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
     
     // TESTS FOR flag()
     // covers invalid cell

@@ -27,8 +27,8 @@ import minesweeper.GameServer;
 public class PublishedTest {
 
     private static final String LOCALHOST = "127.0.0.1";
-//    private static final int PORT = 4000 + new Random().nextInt(1 << 15);
-    private static final int PORT = 4444;
+    private static final int PORT = 4000 + new Random().nextInt(1 << 15);
+//    private static final int PORT = 4444;
     
     private static final int MAX_CONNECTION_ATTEMPTS = 10;
 
@@ -93,6 +93,7 @@ public class PublishedTest {
         Thread thread = startGameServer("test_board_5");
 
         Socket socket = connectToGameServer(thread);
+        Socket socket2 = connectToGameServer(thread);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
