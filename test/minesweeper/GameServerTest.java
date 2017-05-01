@@ -19,8 +19,6 @@ import java.util.Random;
 
 import org.junit.Test;
 
-import minesweeper.GameServer;
-
 /**
  * Tests GameServer with various test boards.
  */

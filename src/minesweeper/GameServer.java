@@ -2,12 +2,18 @@
  * Redistribution of original or derived work requires permission of course staff.
  */
 package minesweeper;
-
-import java.io.*;
-import java.net.*;
-import java.util.*;
-
-import minesweeper.GameBoard;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.Queue;
 
 /**
  * Multi-player Minesweeper server.
@@ -28,8 +34,13 @@ public class GameServer {
     /** Minesweeper board. */
     private final GameBoard board;
     
-    /** number of clients */
+    /** Number of clients playing at one time for a specific server */
     private int numClients = 0;
+    
+    private static final String HELP_MESSAGE = "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
+                                                + "Type 'look' to see the current board status, 'dig X Y' to uncover the square (X,Y), "
+                                                + "'flag X Y' to flag square (X,Y), and 'deflag X Y' to unflag square (X,Y). "
+                                                + "Type 'bye' to quit.";
 
     /*
      * Abstraction function:
@@ -54,6 +65,7 @@ public class GameServer {
      * Make a new game server that listens for connections on port.
      * 
      * @param port port number, requires 0 <= port <= 65535
+     * @param board the gameboard associated with this server
      * @throws IOException if an error occurs opening the server socket
      */
     public GameServer(int port, GameBoard board) throws IOException {
@@ -90,15 +102,6 @@ public class GameServer {
                 }
             });
             handler.start();
-            
-            // handle a single client
-//            try {
-//                handleConnection(socket);
-//            } catch (IOException ioe) {
-//                ioe.printStackTrace(); // but do not stop serving
-//            } finally {
-//                socket.close();
-//            }
         }
     }
 
@@ -143,10 +146,7 @@ public class GameServer {
                      + "(dig -?\\d+ -?\\d+)|(flag -?\\d+ -?\\d+)|(deflag -?\\d+ -?\\d+)";
         if ( ! input.matches(regex)) {
             // invalid input
-            return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
-                    + "Type 'look' to see the current board status, 'dig X Y' to uncover the square (X,Y), "
-                    + "'flag X Y' to flag square (X,Y), and 'deflag X Y' to unflag square (X,Y). "
-                    + "Type 'bye' to quit.";
+            return HELP_MESSAGE;
         }
         String[] tokens = input.split(" ");
         if (tokens[0].equals("look")) {
@@ -154,10 +154,7 @@ public class GameServer {
             return board.toString();
         } else if (tokens[0].equals("help")) {
             // 'help' request
-            return "Please type one of the following commands: 'look', 'dig', 'flag', 'deflag', or 'bye'. "
-                    + "Type 'look' to see the current board status, 'dig X Y' to uncover the square (X,Y), "
-                    + "'flag X Y' to flag square (X,Y), and 'deflag X Y' to unflag square (X,Y). "
-                    + "Type 'bye' to quit.";
+            return HELP_MESSAGE;
         } else if (tokens[0].equals("bye")) {
             // 'bye' request
             return "terminate";
@@ -167,7 +164,7 @@ public class GameServer {
             if (tokens[0].equals("dig")) {
                 // 'dig x y' request
                 String message = board.dig(x, y);
-                if (message=="BOOM") {
+                if (message.equals("BOOM")) {
                     return "BOOM!";
                 }
                 return board.toString();
