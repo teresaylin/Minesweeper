@@ -103,7 +103,6 @@ public class GameBoard {
      * @throws IOException if the file cannot be located
      */
     public GameBoard(final File file) throws IOException {
-        
         BufferedReader reader = new BufferedReader(new FileReader(file));
         String[] size = reader.readLine().split("\\s+");
         this.numCols = Integer.parseInt(size[0]);
@@ -129,7 +128,6 @@ public class GameBoard {
                 }
             }
         }
-        
         checkRep();
     }
     
@@ -169,6 +167,7 @@ public class GameBoard {
     public synchronized String dig(int i, int j) {
         // if not valid or not untouched, return BOARD
         if (!board.containsKey(i+","+j) || board.get(i+","+j)[2]!=0) {
+            checkRep();
             return "BOARD";
         }
         int[] status = board.get(i+","+j);
@@ -181,10 +180,12 @@ public class GameBoard {
             status[0] = 0;
             updateNeighbors(i, j, -1);
             digUntouchedNeighbors(i, j);
+            checkRep();
             return "BOOM";
         }
         // if has no neighbor cells with bombs, change untouched neighbors to dug, and recurse this step for those neighbors
         digUntouchedNeighbors(i, j);
+        checkRep();
         return "BOARD";
     }
     
@@ -218,6 +219,7 @@ public class GameBoard {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==0) {
             board.get(i+","+j)[2] = 1;  // flag
         }
+        checkRep();
         return "BOARD";
     }
     
@@ -231,6 +233,7 @@ public class GameBoard {
         if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==1) {
             board.get(i+","+j)[2] = 0;  // untouched
         }
+        checkRep();
         return "BOARD";
     }
     
