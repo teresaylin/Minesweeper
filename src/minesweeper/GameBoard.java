@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Creates a mutable, thread-safe Minesweeper board, where each cell (i,j) - where i is the x coordinate 
@@ -30,6 +29,7 @@ public class GameBoard {
     private final int numCols;
     private final int numRows;
     private final Map<String, int[]> board = Collections.synchronizedMap(new HashMap<>());
+    private static final double BOMB_PROBABILITY = 0.25;
     
     /*
      * Abstraction function:
@@ -66,15 +66,14 @@ public class GameBoard {
     public GameBoard(int sizeX, int sizeY) {
         numCols = sizeX;
         numRows = sizeY;
-        Random rand = new Random();
         
         // add entries to the board
         for (int x=0; x < sizeX; x++) {
             for (int y=0; y < sizeY; y++) {
                 int[] status = {0, 0, 0};
-                int randomInt = rand.nextInt(4);        // could generate 0, 1, 2, or 3
-                if (randomInt == 0) {
-                    status[0] = 1;                      // bomb status: 1, no bomb: 0
+                double random = Math.random();            // could generate any decimal >= 0 and < 1
+                if (random < BOMB_PROBABILITY) {
+                    status[0] = 1;                        // bomb status: bomb: 1, no bomb: 0
                 }
                 board.put(x+","+y, status);
             }
