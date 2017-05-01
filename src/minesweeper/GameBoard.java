@@ -30,6 +30,7 @@ public class GameBoard {
     private final int numRows;
     private final Map<String, int[]> board = Collections.synchronizedMap(new HashMap<>());
     private static final double BOMB_PROBABILITY = 0.25;
+    private static final int MAX_NEIGHBOR_COUNT = 8;
     
     /*
      * Abstraction function:
@@ -144,7 +145,7 @@ public class GameBoard {
             for (int j=y-1; j <= y+1; j++) {
                 if (!(i==x && j==y) && board.containsKey(i+","+j)) {
                     board.get(i+","+j)[1] += delta;
-                    assert board.get(i+","+j)[1] <= 8 && board.get(i+","+j)[1] >= 0;
+                    assert board.get(i+","+j)[1] <= MAX_NEIGHBOR_COUNT && board.get(i+","+j)[1] >= 0;
                 }
             }
         }
