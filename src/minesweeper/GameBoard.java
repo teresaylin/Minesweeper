@@ -31,6 +31,9 @@ public class GameBoard {
     private final Map<String, int[]> board = Collections.synchronizedMap(new HashMap<>());
     private static final double BOMB_PROBABILITY = 0.25;
     private static final int MAX_NEIGHBOR_COUNT = 8;
+    private static final int BOMB_STATUS = 0;
+    private static final int NEIGHBOR_COUNT = 1;
+    private static final int PLAYER_STATUS = 2;
     
     /*
      * Abstraction function:
@@ -74,7 +77,7 @@ public class GameBoard {
                 int[] status = {0, 0, 0};
                 double random = Math.random();            // could generate any decimal >= 0 and < 1
                 if (random < BOMB_PROBABILITY) {
-                    status[0] = 1;                        // bomb status: bomb: 1, no bomb: 0
+                    status[BOMB_STATUS] = 1;                        // bomb status: bomb: 1, no bomb: 0
                 }
                 board.put(x+","+y, status);
             }
@@ -82,13 +85,12 @@ public class GameBoard {
         // increment count of bombs in neighbors
         for (int x=0; x < sizeX; x++) {
             for (int y=0; y < sizeY; y++) {
-                if (board.get(x+","+y)[0]==1) {
+                if (board.get(x+","+y)[BOMB_STATUS]==1) {
                     updateNeighbors(x, y, 1);
                 }
             }
         }
         checkRep();
-        
     }
     
     /**
@@ -115,7 +117,7 @@ public class GameBoard {
             String[] cells = line.split("\\s+");
             for (int col = 0; col < numCols; col++) {
                 int[] status = {0, 0, 0};
-                status[0] = Integer.parseInt(cells[col]);       // 0 if no bomb, 1 if has bomb
+                status[BOMB_STATUS] = Integer.parseInt(cells[col]);       // 0 if no bomb, 1 if has bomb
                 board.put(col+","+row, status);
             }
         }
@@ -124,7 +126,7 @@ public class GameBoard {
         // change neighbor counts
         for (int x=0; x < numCols; x++) {
             for (int y=0; y < numRows; y++) {
-                if (board.get(x+","+y)[0]==1) {
+                if (board.get(x+","+y)[BOMB_STATUS]==1) {
                     updateNeighbors(x, y, 1);
                 }
             }
@@ -144,8 +146,8 @@ public class GameBoard {
         for (int i=x-1; i <= x+1; i++) {
             for (int j=y-1; j <= y+1; j++) {
                 if (!(i==x && j==y) && board.containsKey(i+","+j)) {
-                    board.get(i+","+j)[1] += delta;
-                    assert board.get(i+","+j)[1] <= MAX_NEIGHBOR_COUNT && board.get(i+","+j)[1] >= 0;
+                    board.get(i+","+j)[NEIGHBOR_COUNT] += delta;
+                    assert board.get(i+","+j)[NEIGHBOR_COUNT] <= MAX_NEIGHBOR_COUNT && board.get(i+","+j)[NEIGHBOR_COUNT] >= 0;
                 }
             }
         }
@@ -167,18 +169,18 @@ public class GameBoard {
      */
     public synchronized String dig(int i, int j) {
         // if not valid or not untouched, return BOARD
-        if (!board.containsKey(i+","+j) || board.get(i+","+j)[2]!=0) {
+        if (!board.containsKey(i+","+j) || board.get(i+","+j)[PLAYER_STATUS]!=0) {
             checkRep();
             return "BOARD";
         }
         int[] status = board.get(i+","+j);
         // if untouched, change to dug
-        if (status[2]==0) {
-            status[2] = 2;      // change status to 2 for 'dug'
+        if (status[PLAYER_STATUS]==0) {
+            status[PLAYER_STATUS] = 2;      // change status to 2 for 'dug'
         }
         // if contains a bomb, return BOOM message, remove bomb, update count of neighbors
-        if (status[0]==1) {
-            status[0] = 0;
+        if (status[BOMB_STATUS]==1) {
+            status[BOMB_STATUS] = 0;
             updateNeighbors(i, j, -1);
             digUntouchedNeighbors(i, j);
             checkRep();
@@ -198,11 +200,11 @@ public class GameBoard {
      */
     private synchronized void digUntouchedNeighbors(int x, int y) {
         int[] status = board.get(x+","+y);
-        if (status[1]==0) {
+        if (status[NEIGHBOR_COUNT]==0) {
             for (int i=x-1; i <= x+1; i++) {
                 for (int j=y-1; j <= y+1; j++) {
-                    if (!(i==x && j==y) && board.containsKey(i+","+j) && board.get(i+","+j)[2]==0) {
-                        board.get(i+","+j)[2] = 2;
+                    if (!(i==x && j==y) && board.containsKey(i+","+j) && board.get(i+","+j)[PLAYER_STATUS]==0) {
+                        board.get(i+","+j)[PLAYER_STATUS] = 2;
                         digUntouchedNeighbors(i, j);
                     }
                 }
@@ -217,8 +219,8 @@ public class GameBoard {
      * @return "BOARD"
      */
     public synchronized String flag(int i, int j) {
-        if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==0) {
-            board.get(i+","+j)[2] = 1;  // flag
+        if (board.containsKey(i+","+j) && board.get(i+","+j)[PLAYER_STATUS]==0) {
+            board.get(i+","+j)[PLAYER_STATUS] = 1;  // flag
         }
         checkRep();
         return "BOARD";
@@ -231,8 +233,8 @@ public class GameBoard {
      * @return "BOARD"
      */
     public synchronized String deflag(int i, int j) {
-        if (board.containsKey(i+","+j) && board.get(i+","+j)[2]==1) {
-            board.get(i+","+j)[2] = 0;  // untouched
+        if (board.containsKey(i+","+j) && board.get(i+","+j)[PLAYER_STATUS]==1) {
+            board.get(i+","+j)[PLAYER_STATUS] = 0;  // untouched
         }
         checkRep();
         return "BOARD";
@@ -247,7 +249,7 @@ public class GameBoard {
     public synchronized String getStatus(int i, int j) {
         if (board.containsKey(i+","+j)) {
             // 0 for untouched, 1 for flagged, 2 for dug
-            int status = board.get(i+","+j)[2];
+            int status = board.get(i+","+j)[PLAYER_STATUS];
             switch(status) {
             case 0: return "untouched";
             case 1: return "flagged";
@@ -283,6 +285,8 @@ public class GameBoard {
      * “F” for squares with state 'flagged'.
      * “ ” (space) for squares with state 'dug' and 0 neighbors that have a bomb.
      * integer COUNT in range [1-8] for squares with state 'dug' and COUNT neighbors that have a bomb.
+     * 
+     * @return string representation of the current state of the board
      */
     @Override
     public synchronized String toString() {
@@ -291,18 +295,18 @@ public class GameBoard {
         for (int row=0; row<numRows; row++) {
             String line = "";
             for (int col=0; col<numCols; col++) {
-                if (board.get(col+","+row)[2]==0) {
+                if (board.get(col+","+row)[PLAYER_STATUS]==0) {
                     //untouched
                     line = line.concat("- ");
-                } else if (board.get(col+","+row)[2]==1) {
+                } else if (board.get(col+","+row)[PLAYER_STATUS]==1) {
                     //flagged
                     line = line.concat("F ");
                 } else {
                     // dug
-                    if (board.get(col+","+row)[1]==0) {
+                    if (board.get(col+","+row)[NEIGHBOR_COUNT]==0) {
                         line = line.concat("  ");
                     } else {
-                        line = line.concat(board.get(col+","+row)[1] + " ");
+                        line = line.concat(board.get(col+","+row)[NEIGHBOR_COUNT] + " ");
                     }
                 }
             }
