@@ -15,7 +15,6 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Random;
 
 import org.junit.Test;
 
@@ -51,7 +50,7 @@ public class GameServerTest {
      */
     
     private static final String LOCALHOST = "127.0.0.1";
-    private static final int PORT = 4000 + new Random().nextInt(1 << 15);
+//    private static final int PORT = 4000 + new Random().nextInt(1 << 15);
     private static final int MAX_CONNECTION_ATTEMPTS = 10;
     private static final String BOARDS_PKG = "minesweeper/boards/";
 
@@ -103,7 +102,7 @@ public class GameServerTest {
                 if (++attempts > MAX_CONNECTION_ATTEMPTS) {
                     throw new IOException("Exceeded max connection attempts", ce);
                 }
-                try { Thread.sleep(attempts * 10); } catch (InterruptedException ie) { }
+                try { Thread.sleep(attempts * 10); } catch (InterruptedException ie) { ie.printStackTrace(); }
             }
         }
     }
@@ -310,6 +309,7 @@ public class GameServerTest {
         socket4.close();
     }
     
+    // covers flagging concurrency for test5
     @Test
     public void testTest5Flag() throws IOException {
         int port = 4002;
