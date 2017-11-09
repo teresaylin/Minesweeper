@@ -1,4 +1,5 @@
 # Minesweeper
+Copyright (c) 2007-2017 MIT 6.005/6.031 course staff, all rights reserved. Redistribution of original or derived work requires permission of course staff.
 
 #### About
 This is a multiplayer version of Minesweeper, where multiple users can play at the same time on the same Minesweeper board (in a command prompt). (To get a feel for single-player Minesweeper, see [this](http://minesweeperonline.com/).) In this game, a Minesweeper board is represented by a grid of squares, where each square may or may not contain a bomb. Depending on the players' inputs, each square is in 1 of 3 possible states: dug, flagged, or untouched. One difference from the traditional single-player Minesweeper is that in this multiplayer version, when a player digs an untouched square that contains a bomb, the game feeds back an alarming message but continues to allow the player to play.
